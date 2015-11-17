@@ -56,6 +56,7 @@ def installed() {
 
 def updated() {
 	log.debug "Updated with settings: ${settings}"
+    state.alertKeys = ""
     unschedule()
 	scheduleJob()
     if(updateSwitch) {
@@ -113,11 +114,12 @@ def checkForSevereWeather(evt) {
 }
 
 def descriptionFilter(String description) {
-	def filterList = ["special", "statement", "test"]
+	def filterList = ["special", "statement","thunderstorm", "test"]
 	def passesFilter = true
 	filterList.each() { word ->
 		if(description.toLowerCase().contains(word)) { passesFilter = false }
 	}
+    log.debug "Description ${description} filter: ${passesFilter}"
 	passesFilter
 }
 
