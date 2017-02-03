@@ -86,6 +86,10 @@ def checkForSevereWeather(evt) {
 		log.warn "Severe Weather Alert: Location is not defined"
 	}
 	log.debug "alerts: ${alerts}"
+    if(alerts == []) {
+    	state.tornadoWatch = false
+        state.tornadoWarning = false
+    }
 	def newKeys = alerts?.collect{it.type + it.date_epoch} ?: []
 	log.debug "Severe Weather Alert: newKeys: $newKeys"
 
@@ -99,13 +103,19 @@ def checkForSevereWeather(evt) {
 		alerts.each {alert ->
 			if (!oldKeys.contains(alert.type + alert.date_epoch) && descriptionFilter(alert.description)) {
 				def msg = "Weather Alert! ${alert.description} from ${alert.date} until ${alert.expires}"
-				send(msg)
-                if (alert.description.contains("Tornado Watch")) {
+				
+                if (alert.description.contains("Tornado Watch") && !state.tornadoWatch) {
+                	send(msg)
                 	log.debug "Turning on tornado Watch Lights"
+                    state.tornadoWarning = false
+                    state.tornadoWatch = true
                 	watchLights.on()               
                 }
-                if (alert.description.contains("Tornado Warning")){
+                if (alert.description.contains("Tornado Warning") && !state.tornadoWarning){
                 	log.debug "Turning on tornado Warning Lights"
+                    send(msg)
+                    state.tornadoWatch = false
+                    state.tornadoWarning = true
                 	warningLights.on()
                 }
 			}
